@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>제주 업종별 관광 트렌드</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- 왼쪽 사이드바: 메뉴 + 필터 -->
+  <aside class="sidebar">
+    <a class="logo" href="#top">
+      <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 3l11 6.5v13L16 29 5 22.5v-13z" fill="currentColor"/><path d="M10 20l4.5-6 3 3.5 2-2.5 3 5z" fill="#fff"/></svg></span>
+      <span class="logo-text"><b>Jeju Trend</b><small>업종별 관광 트렌드</small></span>
+    </a>
+
+    <nav class="menu nav-links" aria-label="페이지 이동">
+      <a href="#overview"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="currentColor"/></svg>한눈에 보기</a>
+      <a href="#change"><svg viewBox="0 0 24 24"><path d="M11 3v10h10A10 10 0 1 1 11 3zm2 0a8 8 0 0 1 8 8h-8z" fill="currentColor"/></svg>업종 변화</a>
+      <a href="#season"><svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zM5 9h14v10H5z" fill="currentColor"/></svg>계절·지역</a>
+      <a href="#search"><svg viewBox="0 0 24 24"><path d="M10 3a7 7 0 0 1 5.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z" fill="currentColor"/></svg>검색·인기 장소</a>
+      <a href="#summary"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm2 9v2h8v-2zm0 4v2h6v-2z" fill="currentColor"/></svg>분석 요약</a>
+      <a href="#about"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm1 8h-2v7h2zm0-4h-2v2h2z" fill="currentColor"/></svg>지표 설명</a>
+    </nav>
+
+    <section class="filters" aria-label="필터">
+      <div class="side-head">
+        <h2>필터</h2>
+        <span class="side-acts"><button type="button" class="reset ghost" id="fCopy" title="현재 필터가 담긴 주소를 복사합니다">링크 복사</button><button type="button" class="reset" id="fReset">초기화</button></span>
+      </div>
+      <div class="state" id="fState" aria-live="polite"></div>
+      <button type="button" class="f-toggle" id="fToggle" aria-expanded="false" aria-controls="fRow">필터 펼치기 ▾</button>
+      <div class="f-row" id="fRow">
+        <div class="f-item period">기간
+          <button type="button" class="period-btn" id="fPeriodBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="fCal">
+            <svg class="cal-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zM5 9h14v10H5z" fill="currentColor"/><rect x="7" y="11" width="3" height="3" rx=".6" fill="currentColor"/></svg>
+            <span id="fPeriodText">-</span>
+            <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
+          </button>
+          <div class="cal" id="fCal" role="dialog" aria-label="기간 선택 달력" hidden></div>
+        </div>
+        <div class="f-item">빠른 선택
+          <span class="f-inline quick" id="fQuick">
+            <button type="button" data-q="all">전체</button>
+            <button type="button" data-q="2024">2024</button>
+            <button type="button" data-q="2025">2025</button>
+            <button type="button" data-q="2026">2026(1~9월)</button>
+            <button type="button" data-q="last12">최근 12개월</button>
+          </span>
+        </div>
+        <label class="f-item">지역
+          <select id="fRegion"></select>
+        </label>
+        <label class="f-item">지표
+          <select id="fMetric">
+            <option value="tour">관광객 도착 수</option>
+            <option value="res">도민 도착 수 (구분 기준 미확인)</option>
+            <option value="arr">도착건수(전체)</option>
+          </select>
+        </label>
+        <div class="f-item f-groups">
+          <div class="f-head"><span>업종 대분류 <span class="hint">(여러 개 선택)</span></span><button type="button" class="f-fold" id="fGroupsFold" aria-expanded="true" aria-controls="fGroups">접기</button></div>
+          <span class="chips" id="fGroups"></span>
+          <button type="button" class="f-sum" id="fGroupsSum" hidden></button>
+        </div>
+        <label class="f-item f-check"><input type="checkbox" id="fTransport"> 교통거점 포함</label>
+        <label class="f-item f-check" title="2026년 도착 수는 입도 관광객보다 크게 늘어 수집 기준 변화가 의심됩니다(원인 미확인)"><input type="checkbox" id="fNo26"> 2026년 제외 <span class="hint">(수집 기준 확인 전)</span></label>
+      </div>
+    </section>
+
+    <div class="side-foot">
+      <span class="sf-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v3H4zm0 5h16v9H4zm3 2v2h4v-2z" fill="currentColor"/></svg></span>
+      <div><small>데이터 기간</small><b id="metaPeriod">-</b></div>
+    </div>
+  </aside>
+
+  <!-- 오른쪽 본문 -->
+  <div class="main">
+    <header class="topbar">
+      <form class="tb-search" id="tbSearch" role="search" autocomplete="off">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a7 7 0 0 1 5.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z" fill="currentColor"/></svg>
+        <input type="search" id="tbInput" list="tbList" placeholder="읍면동·업종·장소·섹션 검색 (예: 애월읍, 숙박, 성산일출봉)" aria-label="검색">
+        <datalist id="tbList"></datalist>
+      </form>
+      <div class="tb-right">
+        <button type="button" class="tb-report" id="rpOpen" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3h2v9.2l3.3-3.3 1.4 1.4L12 16l-5.7-5.7 1.4-1.4 3.3 3.3zM4 18h16v3H4z" fill="currentColor"/></svg>보고서 다운로드</button>
+        <span class="tb-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zM5 9h14v10H5z" fill="currentColor"/></svg>데이터 <b id="navPeriod">-</b></span>
+      </div>
+    </header>
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <!-- 보고서 다운로드 창 -->
+    <div class="modal" id="rpModal" hidden>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rpTitle">
+        <div class="modal-head">
+          <h2 id="rpTitle">보고서 다운로드</h2>
+          <button type="button" class="modal-x" id="rpClose" aria-label="닫기">✕</button>
+        </div>
+        <p class="modal-sub">보고서에 담을 기간을 고르세요. 지역·업종·지표는 현재 필터를 그대로 따릅니다.</p>
+        <div class="rp-block">
+          <h3>기간</h3>
+          <div class="rp-quick" id="rpQuick">
+            <button type="button" data-q="cur">현재 필터 기간</button>
+            <button type="button" data-q="all">전체</button>
+            <button type="button" data-q="2024">2024</button>
+            <button type="button" data-q="2025">2025</button>
+            <button type="button" data-q="2026">2026(1~9월)</button>
+            <button type="button" data-q="last12">최근 12개월</button>
+          </div>
+          <div class="rp-range">
+            <label>시작 월<select id="rpStart"></select></label>
+            <span>~</span>
+            <label>끝 월<select id="rpEnd"></select></label>
+          </div>
+          <p class="rp-note" id="rpRangeNote"></p>
+        </div>
+        <div class="rp-block">
+          <h3>적용되는 필터</h3>
+          <p class="rp-filters" id="rpFilters"></p>
+        </div>
+        <div class="rp-block">
+          <h3>구성</h3>
+          <div class="rp-format">
+            <label><input type="radio" name="rpKind" value="full" checked><span><b>전체 보고서</b><small>모든 차트·표 포함 (여러 쪽)</small></span></label>
+            <label><input type="radio" name="rpKind" value="summary"><span><b>1페이지 요약</b><small>핵심 지표·요약 문장·차트 3개·TOP5 (A4 한 장, 발표용)</small></span></label>
+          </div>
+        </div>
+        <div class="rp-block">
+          <h3>형식</h3>
+          <div class="rp-format">
+            <label><input type="radio" name="rpFmt" value="html" checked><span><b>HTML 파일</b><small>바로 내려받기 · 차트 이미지 포함 · 인터넷 없이 열림</small></span></label>
+            <label><input type="radio" name="rpFmt" value="pdf"><span><b>PDF</b><small>인쇄 창에서 'PDF로 저장' 선택</small></span></label>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn-line" id="rpCancel">취소</button>
+          <button type="button" class="btn-primary" id="rpGo">다운로드</button>
+        </div>
+      </div>
+    </div>
+
+    <main class="content">
+      <!-- 업종이 하나도 선택되지 않았을 때 -->
+      <div class="no-sel-box" id="noSel" hidden>
+        <span class="kic blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z" fill="currentColor"/></svg></span>
+        <h2>선택된 업종이 없습니다</h2>
+        <p>왼쪽 필터의 '업종 대분류'에서 업종을 하나 이상 고르면 결과가 표시됩니다.</p>
+        <button type="button" class="btn-primary" id="noSelAll">관광 업종 전체 선택</button>
+      </div>
+      <!-- 헤더 카드 -->
+      <section class="hero-card" id="top">
+        <div class="hc-text">
+          <span class="promo-badge">JEJU TOURISM DATA</span>
+          <h1>제주 업종별 관광 트렌드</h1>
+          <p>관광객이 어떤 업종을 찾는지, 언제·어디서·얼마나 늘거나 줄었는지 한 화면에서 살펴보세요.</p>
+          <div class="hc-btns"><a class="btn-white" href="#change">업종 변화 보기</a><a class="btn-ghost" href="#about">지표 설명</a></div>
+          <div class="hc-meta">
+            <span><small>데이터 기간</small><b id="heroPeriod">-</b></span>
+            <span><small>기준일</small><b id="heroBuilt">-</b></span>
+            <span><small>데이터</small><b>인기 장소 · 검색어 · 입도 관광객</b></span>
+          </div>
+        </div>
+        <div class="hc-art" aria-hidden="true">
+          <div class="fc fc1"><span class="kic orange"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" fill="currentColor"/></svg></span><div><small>관광 업종 도착 수</small><b id="hcK1">-</b></div></div>
+          <div class="fc fc2"><small>월별 흐름</small><div class="hc-bars" id="hcBars"></div></div>
+          <div class="fc fc3"><span class="kic blue"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z" fill="currentColor"/></svg></span><div><small>점유율이 가장 오른 업종</small><b id="hcK3">-</b></div></div>
+          <svg class="hc-ring" viewBox="0 0 300 300"><circle cx="150" cy="150" r="130" fill="none" stroke="#fff" stroke-opacity=".14" stroke-width="2"/><circle cx="150" cy="150" r="90" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="2"/></svg>
+        </div>
+      </section>
+
+      <!-- 한눈에 보기 -->
+      <section class="sec" id="overview">
+        <div class="sec-head"><h2>한눈에 보기</h2><p>선택한 기간·지역·업종의 핵심 숫자입니다. 필터를 바꾸면 모든 카드와 차트가 함께 바뀝니다.</p></div>
+        <div class="kpis card" aria-label="핵심 지표">
+          <div class="kpi">
+            <div class="k-head"><span class="kic orange" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" fill="currentColor"/></svg></span><span class="k-label" id="k1Label">관광 업종 관광객 도착 수</span></div>
+            <div class="k-row"><div class="k-value" id="k1"></div></div>
+            <div class="spark" id="sp1"></div><div class="k-cap" id="sp1c"></div><div class="k-desc" id="k1d"></div>
+          </div>
+          <div class="kpi">
+            <div class="k-head"><span class="kic green" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 7-7v5h2V3h-10v2h5l-4.6 4.6-4-4L1.6 15.6z" fill="currentColor"/></svg></span><span class="k-label">전년 동기 대비 <em class="ref-tag" title="도착 수의 규모 변화가 입도 관광객과 맞지 않아(원인 미확인) 참고용으로만 보세요">참고</em></span></div>
+            <div class="k-row"><div class="k-value" id="k2"></div></div>
+            <div class="spark" id="sp2"></div><div class="k-cap" id="sp2c"></div><div class="k-desc" id="k2d"></div>
+          </div>
+          <div class="kpi">
+            <div class="k-head"><span class="kic blue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z" fill="currentColor"/></svg></span><span class="k-label">점유율이 가장 오른 업종</span></div>
+            <div class="k-row"><div class="k-value" id="k3"></div><span class="k-badge" id="k3b" hidden></span></div>
+            <div class="spark" id="sp3"></div><div class="k-cap" id="sp3c"></div><div class="k-desc" id="k3d"></div>
+          </div>
+          <div class="kpi">
+            <div class="k-head"><span class="kic red" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm8 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3.3 3.1-6 7-6s7 2.7 7 6zm14.5 0c0-1.9-.7-3.6-1.9-4.9 3.6.1 7.4 1.7 7.4 4.9z" fill="currentColor"/></svg></span><span class="k-label">관광객 비중 <em class="ref-tag" title="관광객·도민 구분 기준이 확인되지 않아 업종·지역끼리 상대 비교용으로만 보세요">상대 비교용</em></span></div>
+            <div class="k-row"><div class="k-value" id="k4"></div></div>
+            <div class="spark" id="sp4"></div><div class="k-cap" id="sp4c"></div><div class="k-desc" id="k4d"></div>
+          </div>
+        </div>
+
+        <div class="ov-grid">
+          <section class="panel ov-month">
+            <div class="p-head">
+              <div><p class="p-eyebrow" id="moLabel">월별 도착 수</p><div class="big" id="moBig">-</div></div>
+              <span class="p-sub right" id="moSub"></span>
+            </div>
+            <div class="chart" id="cMo"></div>
+          </section>
+
+          <section class="promo">
+            <span class="promo-badge" id="promoBadge">안내</span>
+            <h3 id="promoTitle">-</h3>
+            <p id="warn2026" hidden></p>
+            <p id="promoText"></p>
+            <a class="btn-white" id="promoBtn" href="#change">자세히 보기</a>
+            <svg class="promo-art" viewBox="0 0 200 120" aria-hidden="true"><circle cx="150" cy="120" r="90" fill="#fff" opacity=".08"/><circle cx="190" cy="40" r="60" fill="#fff" opacity=".07"/></svg>
+          </section>
+
+          <section class="panel ov-act">
+            <div class="p-head"><h3 class="p-title">분석 하이라이트</h3><a class="link" href="#summary">전체 보기</a></div>
+            <ul class="timeline" id="ovSum"></ul>
+          </section>
+
+          <section class="panel ov-top">
+            <div class="p-head"><h3 class="p-title">인기 장소 TOP5</h3><a class="link" href="#search">전체 보기</a></div>
+            <div class="table-wrap"><table class="data" id="ovTop"></table></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- 업종 변화 -->
+      <section class="sec" id="change">
+        <div class="grid">
+          <section class="panel w12" id="p4">
+            <div class="p-head"><h3 class="p-title">업종 구성과 연도별 점유율</h3><button type="button" class="tbl-btn" data-tbl="t4">표 보기</button></div>
+            <p class="p-sub" id="s4"></p>
+            <div class="share-wrap">
+              <div><h4>선택 기간 업종 구성</h4><div class="chart donut" id="c4"></div></div>
+              <div><h4 id="h4b">연도별 점유율</h4><div class="chart" id="c4b"></div></div>
+            </div>
+            <div class="tbl" id="t4" hidden></div>
+          </section>
+
+          <section class="panel w12" id="p5">
+            <div class="p-head"><h3 class="p-title">업종 증감 순위</h3>
+              <span class="seg" id="growthMode"><button type="button" data-v="yoy" class="on">증감률</button><button type="button" data-v="share">점유율 변화</button></span>
+              <button type="button" class="tbl-btn" data-tbl="t5">표 보기</button></div>
+            <p class="p-sub" id="s5"></p>
+            <div class="chart short" id="c5"></div>
+            <div class="twin">
+              <div><h4>세부 업종 상승 TOP10</h4><ol class="rank" id="r5up"></ol></div>
+              <div><h4>세부 업종 하락 TOP10</h4><ol class="rank" id="r5down"></ol></div>
+            </div>
+            <p class="note" id="n5"></p>
+            <div class="tbl" id="t5" hidden></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- 계절·지역 -->
+      <section class="sec" id="season">
+        <div class="grid">
+          <section class="panel w12" id="p6">
+            <div class="p-head"><h3 class="p-title">업종별 계절성 (월별)</h3>
+              <span class="seg" id="seasonView"><button type="button" data-v="overlay" class="on">겹쳐 보기</button><button type="button" data-v="small">작은 차트</button></span><button type="button" class="tbl-btn" data-tbl="t6">표 보기</button></div>
+            <p class="p-sub" id="s6"></p>
+            <div class="chart" id="c6"></div>
+            <p class="note" id="n6"></p>
+            <div class="tbl" id="t6" hidden></div>
+          </section>
+
+          <section class="panel w12" id="p7">
+            <div class="p-head"><h3 class="p-title">지역 지도</h3>
+              <span class="seg" id="mapMode"><button type="button" data-v="value" class="on">도착 규모</button><button type="button" data-v="lq">특화지수</button></span>
+              <button type="button" class="tbl-btn" data-tbl="t7">표 보기</button></div>
+            <p class="p-sub" id="s7"></p>
+            <div class="map-wrap">
+              <div class="chart map" id="c7"></div>
+              <div class="top5"><h4 id="h7top">상위 5개 읍면동</h4><ol class="rank" id="r7"></ol></div>
+            </div>
+            <p class="note" id="n7"></p>
+            <div class="tbl" id="t7" hidden></div>
+          </section>
+
+          <section class="panel w12" id="p7b">
+            <div class="p-head"><h3 class="p-title">인기 장소 지도</h3>
+              <span class="seg" id="ptColor"><button type="button" data-v="group" class="on">색: 업종</button><button type="button" data-v="trend">색: 상승·하락</button></span>
+              <span class="seg" id="ptN"><button type="button" data-v="50">상위 50</button><button type="button" data-v="100" class="on">상위 100</button><button type="button" data-v="200">상위 200</button></span>
+              <button type="button" class="tbl-btn" data-tbl="tPts">표 보기</button></div>
+            <p class="p-sub" id="sPts"></p>
+            <div class="chart ptmap" id="cPts"></div>
+            <p class="note" id="nPts"></p>
+            <div class="tbl" id="tPts" hidden></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- 검색·인기 장소 -->
+      <section class="sec" id="search">
+        <div class="grid">
+          <section class="panel w12" id="p9">
+            <div class="p-head"><h3 class="p-title">검색 관심도 vs 실제 도착</h3><button type="button" class="tbl-btn" data-tbl="t9">표 보기</button></div>
+            <div class="seg tabs" id="searchTab"></div>
+            <p class="p-sub" id="s9"></p>
+            <div class="chart" id="c9"></div>
+            <p class="note" id="n9"></p>
+            <div class="tbl" id="t9" hidden></div>
+          </section>
+
+          <section class="panel w12" id="p10">
+            <div class="p-head"><h3 class="p-title">업종 내 인기 장소 TOP10</h3></div>
+            <p class="p-sub" id="s10"></p>
+            <div class="table-wrap"><table class="data" id="t10"></table></div>
+            <p class="note" id="n10"></p>
+          </section>
+
+          <section class="panel w12" id="pTrend">
+            <div class="p-head"><h3 class="p-title">뜨는 장소 · 지는 장소</h3><label class="f-check trend-chk"><input type="checkbox" id="trendHideSus"> 이름 변경 의심 제외</label><button type="button" class="tbl-btn" id="trendToMap">지도에서 상승·하락 보기</button></div>
+            <p class="p-sub" id="sTrend"></p>
+            <div class="twin trend-twin">
+              <div><h4 class="up-h">▲ 뜨는 장소 TOP10</h4><div class="table-wrap"><table class="data" id="tUp"></table></div></div>
+              <div><h4 class="down-h">▼ 지는 장소 TOP10</h4><div class="table-wrap"><table class="data" id="tDown"></table></div></div>
+            </div>
+            <p class="note" id="nTrend"></p>
+          </section>
+        </div>
+      </section>
+
+      <!-- 분석 요약 -->
+      <section class="sec" id="summary">
+        <div class="grid">
+          <section class="promo wide w12" id="p11">
+            <span class="promo-badge">자동 요약</span>
+            <h3>분석 결과 요약</h3>
+            <p>현재 필터 기준으로 정해진 규칙에 따라 자동으로 만든 문장입니다.</p>
+            <ul class="summary" id="sum"></ul>
+            <svg class="promo-art" viewBox="0 0 200 120" aria-hidden="true"><circle cx="150" cy="120" r="90" fill="#fff" opacity=".08"/><circle cx="190" cy="40" r="60" fill="#fff" opacity=".07"/></svg>
+          </section>
+          <section class="panel w12">
+            <div class="p-head"><h3 class="p-title">해석할 때 주의할 점</h3></div>
+            <div class="features">
+              <div><span class="kic orange"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm1 13h-2v-6h2zm0-8h-2V6h2z" fill="currentColor"/></svg></span><p>모든 값은 장소별 도착 수입니다. 수집 방식은 확인되지 않았으며, 매출·이용 인원과는 다른 값입니다.</p></div>
+              <div><span class="kic blue"><svg viewBox="0 0 24 24"><path d="M4 18h3V9H4zm6.5 0h3V5h-3zM17 18h3v-6h-3z" fill="currentColor"/></svg></span><p>2026년은 도착 수가 입도 관광객보다 크게 늘었습니다(원인 미확인). 증감률은 점유율 변화와 함께 보세요.</p></div>
+              <div><span class="kic red"><svg viewBox="0 0 24 24"><path d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm8 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3.3 3.1-6 7-6s7 2.7 7 6zm14.5 0c0-1.9-.7-3.6-1.9-4.9 3.6.1 7.4 1.7 7.4 4.9z" fill="currentColor"/></svg></span><p>관광객·도민 구분 기준은 확인되지 않았고, 연령 정보가 없어 모든 값은 전체 관광객 기준입니다.</p></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- 지표 설명 -->
+      <section class="sec" id="about">
+        <section class="panel w12" id="p12">
+          <details open>
+            <summary>지표 설명 · 업종 분류표 · 데이터 한계</summary>
+            <div class="defs">
+              <div>
+                <h4>지표 정의</h4>
+                <dl class="deflist">
+                  <dt>업종 점유율</dt><dd>업종의 지표값 ÷ 관광 업종 전체 지표값 (교통거점 포함 시 분모에 교통거점도 포함)</dd>
+                  <dt>전년 동기 대비</dt><dd>선택 기간 중 전년 같은 달 데이터가 있는 달끼리만 비교합니다. 비교한 개월 수를 함께 표시합니다.</dd>
+                  <dt>점유율 변화</dt><dd>같은 비교 달에서 올해 점유율 − 전년 점유율 (%p). 전체 도착 수가 함께 늘거나 줄어드는 영향을 덜 받습니다.</dd>
+                  <dt>2026년 데이터 처리 방침</dt><dd>2026년 도착 수는 입도 관광객보다 훨씬 크게 늘었고(1~8월 +52.8% vs +4.1%), 2025년도 방향이 다릅니다(-11.0% vs +0.7%). 도착 수의 규모 변화는 그대로 믿기 어려워, 업종 비교는 점유율(%p)을 기본으로 합니다. 증감률은 참고로만 보세요. 필터의 '2026년 제외'로 2026년을 뺄 수 있습니다.</dd>
+                  <dt>관광객 비중</dt><dd>관광객 도착 수 ÷ (관광객 도착 수 + 도민 도착 수)</dd>
+                  <dt>지역 특화지수(입지계수)</dt><dd>(읍면동 안에서 선택 업종 비중) ÷ (제주 전체에서 선택 업종 비중). 1보다 크면 그 업종이 상대적으로 몰린 지역입니다.</dd>
+                  <dt>계절성 지수</dt><dd>업종의 월별 값 ÷ 그 해 월평균 × 100. 선택 기간에 1월~12월이 모두 있는 해만 계산해 평균합니다. 그런 해가 없으면 선택 기간의 월평균을 기준으로 씁니다.</dd>
+                  <dt>검색·도착 지수</dt><dd>선택 기간 첫 달 = 100으로 바꾼 값. 검색 '수치'의 정의가 확인되지 않아 절대값은 비교하지 않고 흐름만 봅니다.</dd>
+                  <dt>표본 적음</dt><dd>비교 기준 값(전년 값 또는 해당 칸 합계)이 1,000 미만이면 순위·요약에서 빼고 '표본 적음'으로 표시합니다.</dd>
+                </dl>
+                <h4>데이터 한계</h4>
+                <ul class="limits" id="limits"></ul>
+              </div>
+              <div>
+                <h4>업종 분류표 <span class="hint" id="mapCount"></span></h4>
+                <p class="hint">data\category_map.csv 를 고친 뒤 scripts\build_industry.ps1 을 다시 실행하면 반영됩니다. ⚑ = 판단 보류(임시 분류)</p>
+                <input type="search" id="mapSearch" placeholder="카테고리·대분류 검색" aria-label="업종 분류표 검색">
+                <div class="table-wrap tall"><table class="data" id="mapTable"></table></div>
+              </div>
+            </div>
+            <h4>빌드 로그</h4>
+            <pre class="log" id="buildLog"></pre>
+          </details>
+        </section>
+      </section>
+
+   </main>
+
+    <footer class="foot">
+      데이터 출처: 제주 지역별 인기 장소(목적지 도착 수) · 비짓제주 검색어 순위 · 월별 입도 관광객 ·
+      읍면동 경계 vuski/admdongkor ver20260701 (원자료 통계청 SGIS, CC BY 4.0) · 장소 좌표: 카카오 로컬 API(주소 → 좌표 변환)
+    </footer>
+  </div>
+</div>
+
+<script src="lib/echarts.min.js"></script>
+<script src="data/geo_data.js"></script>
+<script src="data/industry_data.js"></script>
+<script src="data/places_top.js"></script>
+<script src="data/search_index.js"></script>
+<!-- 화면 코드: core.js 가 맨 처음, main.js 가 맨 마지막 (순서 유지). 자동 점검 js/selftest.js 는 ?selftest=1 일 때만 main.js 가 불러옴 -->
+<script src="js/core.js"></script>
+<script src="js/filters.js"></script>
+<script src="js/overview.js"></script>
+<script src="js/change.js"></script>
+<script src="js/season-map.js"></script>
+<script src="js/search.js"></script>
+<script src="js/places.js"></script>
+<script src="js/summary.js"></script>
+<script src="js/report.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
