@@ -16,24 +16,46 @@ function update() {
 }
 function rerenderTheme() { readTheme(); update(); renderMapTable(); }
 
-// ---------- 한 페이지 스크롤 + 메뉴 자동 강조 ----------
+// ---------- 페이지 나누기: 위쪽 메뉴 탭을 누르면 그 페이지(섹션)만 보임 ----------
+// 헤더 카드(#top)는 '한눈에 보기' 페이지에 속함. 주소의 #뒤(#change 등)가 지금 페이지
 var PAGES = [
   { id: 'overview', name: '한눈에 보기' }, { id: 'change', name: '업종 변화' }, { id: 'season', name: '계절·지역' },
   { id: 'search', name: '검색·인기 장소' }, { id: 'summary', name: '분석 요약' }, { id: 'about', name: '지표 설명' }
 ];
+var curPage = 'overview';
 function setActive(id) {
-  document.querySelectorAll('.nav-links a').forEach(function (a) { var on = a.getAttribute('href') === '#' + id; a.classList.toggle('on', on); if (on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); });
+  document.querySelectorAll('.nav-links a').forEach(function (a) { var on = a.getAttribute('href') === '#' + id; a.classList.toggle('on', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
 }
-function goSection(id) { var el = $(id); if (el) el.scrollIntoView({ block: 'start' }); setActive(id); }
-// 스크롤 위치에 따라 지금 보이는 섹션의 메뉴를 켬
-function spy() {
-  var line = 140, cur = 'overview';
-  PAGES.forEach(function (p) { var r = $(p.id).getBoundingClientRect(); if (r.top - line <= 0) cur = p.id; });
-  if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) cur = PAGES[PAGES.length - 1].id;
-  setActive(cur);
+function pageOf(id) {   // 어떤 요소가 속한 페이지
+  if (id === 'top') return 'overview';
+  var el = $(id); if (!el) return null;
+  var sec = el.closest('.sec'); return sec ? sec.id : (PAGES.some(function (p) { return p.id === id; }) ? id : null);
 }
-var spyTick = false;
-window.addEventListener('scroll', function () { if (!spyTick) { spyTick = true; requestAnimationFrame(function () { spyTick = false; spy(); }); } }, { passive: true });
+function showPage(pid) {
+  curPage = pid;
+  PAGES.forEach(function (p) { $(p.id).classList.toggle('page-off', p.id !== pid); });
+  $('top').classList.toggle('page-off', pid !== 'overview');
+  setActive(pid);
+  for (var k in charts) charts[k].resize();
+  // 주소에는 '#/change' 형태로 저장 (요소 id와 달라야 브라우저가 그 위치로 자동 스크롤하지 않음)
+  try { history.replaceState(null, '', location.pathname + location.search + '#/' + pid); } catch (e) { }
+}
+function hashId() { return (location.hash || '').replace(/^#\/?/, ''); }   // '#/change'·'#change' 모두 'change'
+// 페이지 이동: 페이지 이름이면 그 페이지 맨 위로, 페이지 안의 요소(p10 등)면 그 페이지를 열고 요소로 스크롤
+function goSection(id) {
+  var pid = pageOf(id); if (!pid) return;
+  if (pid !== curPage) showPage(pid); else setActive(pid);
+  if (id === pid || id === 'top') window.scrollTo(0, 0);
+  else $(id).scrollIntoView({ block: 'start' });
+}
+function spy() { setActive(curPage); }
+// 화면 안의 #링크(메뉴 탭, '업종 변화 보기' 버튼, '전체 보기' 등)는 페이지 전환으로 처리
+document.addEventListener('click', function (e) {
+  var a = e.target.closest && e.target.closest('a[href^="#"]'); if (!a || a.classList.contains('logo')) return;
+  var id = a.getAttribute('href').slice(1); if (!id || !pageOf(id)) return;
+  e.preventDefault(); goSection(id);
+});
+window.addEventListener('hashchange', function () { var id = hashId(); if (id && pageOf(id) && pageOf(id) !== curPage) goSection(id); });
 
 // ---------- 위쪽 검색창: 읍면동·시·업종 → 필터, 장소 → TOP10 위치, 섹션 이름 → 이동 ----------
 function toast(msg) { var t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(function () { t.hidden = true; }, 2600); }
@@ -60,7 +82,7 @@ function runSearch(q) {
   if (hits.length) {
     hits.sort(function (a, b) { return (P.name[a] === q ? -1 : 0) - (P.name[b] === q ? -1 : 0); });
     var h = hits[0]; st.region = 'dong:' + P.dong[h]; if (selGroups().indexOf(P.group[h]) < 0) st.groups = [P.group[h]];
-    update(); goSection('search'); $('p10').scrollIntoView({ block: 'start' });
+    update(); goSection('p10');
     toast('「' + P.name[h] + '」(' + D.dongs.name[P.dong[h]] + ') 지역으로 필터를 맞췄습니다' + (hits.length > 1 ? ' · 비슷한 이름 ' + (hits.length - 1) + '곳 더' : ''));
     return;
   }
@@ -134,11 +156,16 @@ function initFold() {
   $('fCopy').onclick = copyLink;
 }
 
-readTheme(); initControls(); initSearch(); initReport(); initFold(); urlToState(); renderStatic(); update(); spy();
-// 로고: 페이지 맨 위로 올라가 헤더 카드 전체가 보이게 (고정 바에 가리지 않도록 #top 앵커 대신 0으로 스크롤)
+readTheme(); initControls(); initSearch(); initReport(); initFold(); urlToState(); renderStatic(); update();
+var INIT_ID = hashId();   // 처음 주소의 #/페이지 (또는 예전 형식 #페이지, #p10 같은 요소)
+showPage(pageOf(INIT_ID) || 'overview');   // 그 페이지로 시작 (없으면 한눈에 보기)
+// 페이지 이름으로 열면 항상 맨 위에서 시작 (예전 형식 '#change' 주소로 열 때 브라우저 자동 스크롤도 되돌림)
+try { history.scrollRestoration = 'manual'; } catch (e) { }
+if (!INIT_ID || INIT_ID === pageOf(INIT_ID) || INIT_ID === 'top') { window.scrollTo(0, 0); window.addEventListener('load', function () { setTimeout(function () { window.scrollTo(0, 0); }, 0); }); }
+// 로고: '한눈에 보기' 페이지 맨 위(헤더 카드)로
 function goTop() {
+  if (curPage !== 'overview') showPage('overview');
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { }
   setActive('overview');
 }
 document.querySelector('.logo').addEventListener('click', function (e) { e.preventDefault(); goTop(); });
@@ -149,8 +176,7 @@ $('fToggle').addEventListener('click', function () {
   this.setAttribute('aria-expanded', open ? 'true' : 'false');
   this.textContent = open ? '필터 접기 ▴' : '필터 펼치기 ▾';
 });
-if (location.hash === '#top') setTimeout(goTop, 0);
-else if (location.hash && $(location.hash.slice(1))) setTimeout(function () { goSection(location.hash.slice(1)); }, 0);
+if (INIT_ID && pageOf(INIT_ID) && INIT_ID !== pageOf(INIT_ID) && INIT_ID !== 'top') setTimeout(function () { goSection(INIT_ID); }, 0);   // 예: #p10 → 검색·인기 장소 페이지의 TOP10
 var lastW = window.innerWidth, wasNarrow = narrow();
 window.addEventListener('resize', function () {
   for (var k in charts) charts[k].resize();

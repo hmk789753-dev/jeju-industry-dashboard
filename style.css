@@ -155,7 +155,21 @@ select:focus, input[type="search"]:focus { border-color: var(--accent); backgrou
 
 /* ---------- 본문 ---------- */
 .main { min-width: 0; padding: 0 32px 24px; display: flex; flex-direction: column; }
-.topbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 0 18px; background: color-mix(in srgb, var(--page) 88%, transparent); backdrop-filter: blur(8px); }
+.topbar { position: sticky; top: 0; z-index: 10; display: flex; flex-direction: column; align-items: stretch; gap: 14px; padding: 14px 0 16px; background: color-mix(in srgb, var(--page) 88%, transparent); backdrop-filter: blur(8px); }
+.tb-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+/* 위쪽 메뉴 탭 (페이지 전환) */
+.topnav { display: flex; gap: 2px; border-bottom: 1px solid var(--grid); overflow-x: auto; scrollbar-width: none; }
+.topnav::-webkit-scrollbar { display: none; }
+.topnav a { display: flex; align-items: center; gap: 8px; padding: 10px 16px 12px; margin-bottom: -1px; border-bottom: 3px solid transparent; text-decoration: none; white-space: nowrap; font-size: 14.5px; font-weight: 600; color: var(--text-secondary); transition: color .15s, border-color .15s; }
+.topnav a svg { width: 17px; height: 17px; color: var(--text-muted); flex: none; }
+.topnav a:hover { color: var(--text-primary); }
+.topnav a.on { color: var(--accent-strong); border-bottom-color: var(--accent-strong); }
+.topnav a.on svg { color: var(--accent-strong); }
+/* 페이지 나누기: 지금 페이지가 아닌 섹션은 숨김. display:none 대신 폭은 유지한 채 높이 0으로 숨겨 차트가 제 크기로 그려지게 함 */
+.content { position: relative; }
+.page-off { position: absolute !important; left: 0; right: 0; top: 0; height: 0; overflow: hidden; visibility: hidden; pointer-events: none; margin: 0 !important; }
+.sec:not(#overview) { margin-top: 8px; }
+.panel { scroll-margin-top: 150px; }
 .tb-search { flex: 1; max-width: 520px; display: flex; align-items: center; gap: 10px; background: var(--surface-1); border-radius: 14px; padding: 4px 6px 4px 16px; box-shadow: var(--shadow-sm); }
 .tb-search svg { width: 18px; height: 18px; color: var(--text-muted); flex: none; }
 .tb-search input { flex: 1; background: transparent; border: 0; padding: 9px 4px; font-size: 13.5px; }
@@ -249,7 +263,7 @@ select:focus, input[type="search"]:focus { border-color: var(--accent); backgrou
 .hc-bars i.on { background: var(--accent); }
 
 /* 섹션 제목 */
-.sec { margin-top: 40px; scroll-margin-top: 90px; }
+.sec { margin-top: 40px; scroll-margin-top: 150px; }
 .sec-head { margin: 0 0 16px; }
 .sec-head h2 { margin: 0; font-size: 20px; letter-spacing: -0.02em; }
 .sec-head p { margin: 4px 0 0; font-size: 13px; color: var(--text-secondary); }
@@ -405,7 +419,7 @@ details[open] summary::after { content: "접기 －"; }
   .ov-act, .ov-top { grid-column: span 12; }
 }
 @media (max-width: 1000px) {
-  .app { grid-template-columns: minmax(0, 1fr); }
+  .app { grid-template-columns: minmax(0, 1fr); align-content: start; }
   .sidebar { position: relative; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
   .menu { flex-direction: row; overflow-x: auto; scrollbar-width: none; }
   .menu a { white-space: nowrap; }
@@ -425,6 +439,8 @@ details[open] summary::after { content: "접기 －"; }
   .panel { padding: 18px 16px; }
   .map-wrap, .twin, .defs, .share-wrap, .features { grid-template-columns: minmax(0, 1fr); }
   .topbar { flex-direction: column; align-items: stretch; }
+  .tb-row { flex-direction: column; align-items: stretch; gap: 10px; }
+  .topnav a { padding: 10px 12px 11px; font-size: 13.5px; }
   .tb-search { max-width: none; }
   .tb-chip { display: none; }
   .tb-report { justify-content: center; }

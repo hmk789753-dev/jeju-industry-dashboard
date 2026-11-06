@@ -114,7 +114,7 @@ function renderOverview() {
         var on = i === maxI, y26 = x[i] >= '2026';
         return { value: n, itemStyle: { color: on ? T.accent : T.grid, borderRadius: [8, 8, 8, 8],
             decal: y26 ? { symbol: 'rect', symbolSize: 1, dashArrayX: [1, 0], dashArrayY: [2, 5], rotation: -Math.PI / 4, color: on ? 'rgba(255,255,255,0.35)' : 'rgba(176,122,0,0.22)' } : { symbol: 'none' } },
-          label: on ? { show: true, position: 'top', distance: 8, formatter: fmtN(n), color: '#fff', backgroundColor: T['text-primary'], padding: [5, 9], borderRadius: 6, fontSize: 11, fontWeight: 'bold' } : { show: false } };
+          label: on ? { show: true, position: 'top', distance: 8, formatter: fmtN(n), color: T['surface-1'], backgroundColor: T['text-primary'], padding: [5, 9], borderRadius: 6, fontSize: 11, fontWeight: 'bold' } : { show: false } };
       }),
       emphasis: { itemStyle: { color: T.accent } },
       markArea: a26 ? { silent: true, itemStyle: { color: AREA26 }, label: { show: false }, data: [a26] } : undefined

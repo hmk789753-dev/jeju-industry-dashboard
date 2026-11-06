@@ -9,21 +9,12 @@
 <body>
 <div class="app">
 
-  <!-- 왼쪽 사이드바: 메뉴 + 필터 -->
+  <!-- 왼쪽 사이드바: 로고 + 필터 (메뉴는 위쪽 탭) -->
   <aside class="sidebar">
     <a class="logo" href="#top">
       <span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 3l11 6.5v13L16 29 5 22.5v-13z" fill="currentColor"/><path d="M10 20l4.5-6 3 3.5 2-2.5 3 5z" fill="#fff"/></svg></span>
       <span class="logo-text"><b>Jeju Trend</b><small>업종별 관광 트렌드</small></span>
     </a>
-
-    <nav class="menu nav-links" aria-label="페이지 이동">
-      <a href="#overview"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="currentColor"/></svg>한눈에 보기</a>
-      <a href="#change"><svg viewBox="0 0 24 24"><path d="M11 3v10h10A10 10 0 1 1 11 3zm2 0a8 8 0 0 1 8 8h-8z" fill="currentColor"/></svg>업종 변화</a>
-      <a href="#season"><svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zM5 9h14v10H5z" fill="currentColor"/></svg>계절·지역</a>
-      <a href="#search"><svg viewBox="0 0 24 24"><path d="M10 3a7 7 0 0 1 5.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z" fill="currentColor"/></svg>검색·인기 장소</a>
-      <a href="#summary"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm2 9v2h8v-2zm0 4v2h6v-2z" fill="currentColor"/></svg>분석 요약</a>
-      <a href="#about"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm1 8h-2v7h2zm0-4h-2v2h2z" fill="currentColor"/></svg>지표 설명</a>
-    </nav>
 
     <section class="filters" aria-label="필터">
       <div class="side-head">
@@ -79,6 +70,16 @@
   <!-- 오른쪽 본문 -->
   <div class="main">
     <header class="topbar">
+      <!-- 메뉴: 누르면 그 페이지만 보임 (나머지 페이지는 숨김) -->
+      <nav class="topnav nav-links" aria-label="페이지">
+        <a href="#overview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="currentColor"/></svg>한눈에 보기</a>
+        <a href="#change"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3v10h10A10 10 0 1 1 11 3zm2 0a8 8 0 0 1 8 8h-8z" fill="currentColor"/></svg>업종 변화</a>
+        <a href="#season"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zM5 9h14v10H5z" fill="currentColor"/></svg>계절·지역</a>
+        <a href="#search"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a7 7 0 0 1 5.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z" fill="currentColor"/></svg>검색·인기 장소</a>
+        <a href="#summary"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm2 9v2h8v-2zm0 4v2h6v-2z" fill="currentColor"/></svg>분석 요약</a>
+        <a href="#about"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm1 8h-2v7h2zm0-4h-2v2h2z" fill="currentColor"/></svg>지표 설명</a>
+      </nav>
+      <div class="tb-row">
       <form class="tb-search" id="tbSearch" role="search" autocomplete="off">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a7 7 0 0 1 5.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z" fill="currentColor"/></svg>
         <input type="search" id="tbInput" list="tbList" placeholder="읍면동·업종·장소·섹션 검색 (예: 애월읍, 숙박, 성산일출봉)" aria-label="검색">
@@ -87,6 +88,7 @@
       <div class="tb-right">
         <button type="button" class="tb-report" id="rpOpen" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 3h2v9.2l3.3-3.3 1.4 1.4L12 16l-5.7-5.7 1.4-1.4 3.3 3.3zM4 18h16v3H4z" fill="currentColor"/></svg>보고서 다운로드</button>
         <span class="tb-chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2zM5 9h14v10H5z" fill="currentColor"/></svg>데이터 <b id="navPeriod">-</b></span>
+      </div>
       </div>
     </header>
     <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>

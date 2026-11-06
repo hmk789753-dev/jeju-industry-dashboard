@@ -23,7 +23,7 @@ function renderPlaces() {
   if (!top.length) h += '<tr><td colspan="7" class="muted">데이터 없음</td></tr>';
   top.forEach(function (o, i) {
     var p = o.p, g = placeYoyPill(o);
-    h += '<tr><td class="n">' + (i + 1) + '</td><td><span class="dot" style="background:' + gColor(P.group[p]) + '"></span>' + esc(P.name[p]) + (P.mis[p] ? ' <span class="flag" title="도착건수와 관광객+도민 합계가 다른 달이 ' + P.mis[p] + '개 있음">*</span>' : '') + '</td><td>' + esc(D.dongs.name[P.dong[p]]) + '</td><td>' + esc(D.cats.name[P.cat[p]]) + (P.cats[p] > 1 ? ' <span class="muted" title="세부 업종이 ' + P.cats[p] + '개로 기록됨. 도착건수가 가장 많은 업종을 표시">외</span>' : '') + '</td><td class="n">' + fmtN(o.v) + '</td><td class="n">' + g + '</td><td class="n">' + (o.t + o.r ? fmtP(o.t / (o.t + o.r)) : '-') + '</td></tr>';
+    h += '<tr><td class="n">' + (i + 1) + '</td><td><span class="dot" style="background:' + gColor(P.group[p]) + '"></span>' + esc(P.name[p]) + (P.mis[p] ? ' <span class="flag" title="도착건수와 관광객+도민 합계가 다른 달이 ' + P.mis[p] + '개 있음">*</span>' : '') + (P.alias && P.alias[p] ? '<small class="muted" style="display:block">이전 이름: ' + esc(P.alias[p]) + '</small>' : '') + '</td><td>' + esc(D.dongs.name[P.dong[p]]) + '</td><td>' + esc(D.cats.name[P.cat[p]]) + (P.cats[p] > 1 ? ' <span class="muted" title="세부 업종이 ' + P.cats[p] + '개로 기록됨. 도착건수가 가장 많은 업종을 표시">외</span>' : '') + '</td><td class="n">' + fmtN(o.v) + '</td><td class="n">' + g + '</td><td class="n">' + (o.t + o.r ? fmtP(o.t / (o.t + o.r)) : '-') + '</td></tr>';
   });
   $('t10').innerHTML = h + '</tbody>';
   $('n10').textContent = '* 도착건수와 관광객+도민 합계가 다른 달이 있는 장소(원본 30,011행, 값은 그대로 사용). 전년 대비는 비교 가능한 달의 관광객 도착 수, 전년 값 100 미만은 표본 적음. 장소 후보는 읍면동×업종마다 전 기간·연도별 상위 ' + P.topN + '곳(전체 ' + fmtN(P.allPlaces) + '곳 중 ' + fmtN(NP) + '곳)이라, 짧은 기간에만 붐빈 작은 장소는 빠질 수 있습니다.';
@@ -59,8 +59,9 @@ function renderPlaceTrend() {
     var sc = o.curM / tc, sp = o.prevM / tp; A.trendD[o.p] = sc - sp;
     return { o: o, sc: sc, sp: sp, d: sc - sp, g: o.curM / o.prevM - 1 };
   });
-  // 이름 변경 의심: 같은 읍면동·업종에 이름 앞부분이 같은 장소가 반대 방향으로 움직이면
-  // (예: '우진해장국' ↓ / '우진해장국/본관' ↑) 기록상 이름이 바뀌어 둘로 나뉜 것일 수 있음
+  // 이름이 확실히 바뀐 장소(같은 주소에서 이전 이름이 끝날 때 새 이름이 시작)는 빌드에서 이미 하나로 합침(P.alias).
+  // 남은 '이름 변경 의심': 같은 읍면동·업종·주소에 이름 앞부분이 같은 장소가 반대 방향으로 움직이는데,
+  // 기간이 겹쳐 자동으로 합치지 못한 경우 (주소가 다르면 체인의 다른 지점이므로 의심하지 않음)
   var base = function (s) { return s.split('/')[0].replace(/\s+/g, ''); };
   var byDG = {};
   rows.forEach(function (r) { var k = P.dong[r.o.p] + '|' + P.group[r.o.p]; (byDG[k] = byDG[k] || []).push(r); });
@@ -68,6 +69,7 @@ function renderPlaceTrend() {
     var b1 = base(P.name[r.o.p]);
     r.sus = b1.length >= 2 && (byDG[P.dong[r.o.p] + '|' + P.group[r.o.p]] || []).some(function (x) {
       if (x === r || x.d * r.d >= 0) return false;
+      if (P.addr && P.addr[x.o.p] !== P.addr[r.o.p]) return false;
       var b2 = base(P.name[x.o.p]), n = Math.min(3, b1.length, b2.length);
       return b1 === b2 || (n >= 2 && b1.slice(0, n) === b2.slice(0, n) && Math.abs(x.d) > Math.abs(r.d) * 0.3);
     });
@@ -80,7 +82,7 @@ function renderPlaceTrend() {
     if (!arr.length) h += '<tr><td colspan="4" class="muted">해당 장소 없음</td></tr>';
     arr.forEach(function (r, i) {
       var p = r.o.p;
-      h += '<tr><td class="n">' + (i + 1) + '</td><td><span class="dot" style="background:' + gColor(P.group[p]) + '"></span><b>' + esc(P.name[p]) + '</b>' + (r.sus ? ' <em class="ref-tag" title="같은 읍면동·업종에 이름이 비슷한 장소가 반대로 움직였습니다. 기록상 이름이 바뀌어 둘로 나뉜 것일 수 있어 실제 인기 변화가 아닐 수 있습니다.">이름 변경 의심</em>' : '') + '<small>' + esc(D.dongs.name[P.dong[p]]) + ' · ' + esc(D.cats.name[P.cat[p]]) + '</small></td>'
+      h += '<tr><td class="n">' + (i + 1) + '</td><td><span class="dot" style="background:' + gColor(P.group[p]) + '"></span><b>' + esc(P.name[p]) + '</b>' + (r.sus ? ' <em class="ref-tag" title="같은 읍면동·업종에 이름이 비슷한 장소가 반대로 움직였습니다. 기록상 이름이 바뀌어 둘로 나뉜 것일 수 있어 실제 인기 변화가 아닐 수 있습니다.">이름 변경 의심</em>' : '') + '<small>' + esc(D.dongs.name[P.dong[p]]) + ' · ' + esc(D.cats.name[P.cat[p]]) + aliasTxt(p) + '</small></td>'
         + '<td class="n">' + fmtP(r.sp, 2) + ' → ' + fmtP(r.sc, 2) + '<small>' + fmtN(r.o.prevM) + ' → ' + fmtN(r.o.curM) + '건</small></td>'
         + '<td class="n"><span class="pill ' + cls + '">' + fmtPP2(r.d) + '</span><small>' + fmtS(r.g) + '</small></td></tr>';
     });
@@ -90,10 +92,19 @@ function renderPlaceTrend() {
   var susN = up.concat(down).filter(function (r) { return r.sus; }).length;
   var hidN = st.trendHideSus ? rows.filter(function (r) { return r.sus; }).length : 0;
   if (hidN) $('nTrend').textContent += ' 이름 변경 의심 ' + hidN + '곳을 빼고 순위를 매겼습니다.';
-  if (susN) $('nTrend').textContent += ' \'이름 변경 의심\' ' + susN + '곳: 같은 읍면동·업종에 이름이 비슷한 장소가 반대로 움직여, 기록상 이름이 바뀌어 둘로 나뉜 것일 수 있습니다(실제 인기 변화가 아닐 수 있음).';
+  $('nTrend').textContent += ' 기록상 이름만 바뀐 장소(같은 주소에서 이전 이름이 끝나는 달에 새 이름이 시작)는 하나로 합쳐 새 이름으로 계산했습니다(‘이전 이름’ 표시).';
+  if (susN) $('nTrend').textContent += ' \'이름 변경 의심\' ' + susN + '곳: 같은 주소에 이름이 비슷한 장소가 반대로 움직이지만 기간이 겹쳐 합치지 않았습니다(실제 인기 변화가 아닐 수 있음).';
   var lab = function (r) { return P.name[r.o.p] + '(' + D.dongs.name[P.dong[r.o.p]] + ') ' + fmtPP2(r.d) + (r.sus ? ' [이름변경의심]' : ''); };
   OUT.trend = { compared: rows.length, suspect: susN, up: up.map(lab), down: down.map(lab) };
 }
+
+// '#rrggbb' 색을 투명도 a 로 (그 외 형식은 그대로)
+function tint(hex, a) {
+  var m = /^#([0-9a-f]{6})$/i.exec(String(hex).trim()); if (!m) return hex;
+  var n = parseInt(m[1], 16); return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+}
+// 합쳐진 이전 이름 표시 (빌드에서 이름이 바뀐 장소를 하나로 합친 경우)
+function aliasTxt(p) { var a = P.alias && P.alias[p]; return a ? ' · 이전 이름: ' + esc(a) : ''; }
 
 var DONG_CENTER = null;
 function dongCenters() {
@@ -108,9 +119,42 @@ function dongCenters() {
   });
   return DONG_CENTER;
 }
+// 좌표 점검: 좌표가 장소의 읍면동 경계 안에 있는지 (경계 다각형 안/밖 판정)
+var DONG_POLYS = null, COORD_CHECK = {};
+function dongPolys() {
+  if (DONG_POLYS) return DONG_POLYS;
+  DONG_POLYS = {};
+  GEO.features.forEach(function (f) {
+    var nm = f.properties.adm_nm, name = nm.slice(nm.lastIndexOf(' ') + 1), g = f.geometry;
+    DONG_POLYS[name] = (g.type === 'Polygon' ? [g.coordinates] : g.coordinates).map(function (pl) { return pl[0]; });
+  });
+  return DONG_POLYS;
+}
+function inRing(x, y, ring) {
+  var inside = false;
+  for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    var xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+// 장소 p의 좌표 상태: 'addr'(주소로 찾음) · 'name'(이름으로 찾음) · 'out'(이름으로 찾았는데 읍면동 밖 → 믿지 않음) · 'none'(좌표 없음)
+function coordState(p) {
+  if (COORD_CHECK[p]) return COORD_CHECK[p];
+  var lng = P.lng ? P.lng[p] : null, lat = P.lat ? P.lat[p] : null, s;
+  if (lng == null || lat == null) s = 'none';
+  else {
+    var rings = dongPolys()[D.dongs.name[P.dong[p]]] || [], inside = rings.some(function (r) { return inRing(lng, lat, r); });
+    var src = P.src ? P.src[p] : 1;
+    s = src === 2 ? (inside ? 'name' : 'out') : (inside ? 'addr' : 'addrOut');
+  }
+  return (COORD_CHECK[p] = s);
+}
+var COORD_LABEL = { addr: '주소로 찾은 좌표', addrOut: '주소로 찾은 좌표(읍면동 경계 밖)', name: '장소 이름으로 찾은 좌표', out: '대략 위치(이름 검색 결과가 다른 읍면동이라 쓰지 않음)', none: '대략 위치(좌표 없음)' };
+
 function renderPlaceMap() {
   var list = (A.placesAll || []).slice(0, st.ptN), cen = dongCenters();
-  var vmax = list.length ? list[0].v : 1, exact = 0, approx = 0;
+  var vmax = list.length ? list[0].v : 1, exact = 0, approx = 0, cnt = { addr: 0, addrOut: 0, name: 0, out: 0, none: 0 };
   $('sPts').textContent = periodLabel() + ' · ' + regionLabel() + ' · ' + groupsLabel() + ' · ' + MET[st.metric] + ' 상위 ' + list.length + '곳. 점 크기 = ' + MET[st.metric] + ', 색 = 업종. 범례를 누르면 업종별로 켜고 끌 수 있습니다.';
   var byG = {}, trend = st.ptColor === 'trend' && A.yoy.length > 0;
   // 상승·하락 색: 점유율 변화의 크기로 3단계 (작은 변화는 회색)
@@ -125,15 +169,18 @@ function renderPlaceMap() {
   }
   var trendKey = function (p) { var d = A.trendD ? A.trendD[p] : null; if (d == null) return 3; return Math.abs(d) < thr ? 1 : d > 0 ? 0 : 2; };
   list.forEach(function (o, rank) {
-    var p = o.p, g = trend ? trendKey(p) : P.group[p], lng = P.lng ? P.lng[p] : null, lat = P.lat ? P.lat[p] : null, ok = lng != null && lat != null;
+    var p = o.p, g = trend ? trendKey(p) : P.group[p], cs = coordState(p), ok = cs === 'addr' || cs === 'addrOut' || cs === 'name';
+    var lng = ok ? P.lng[p] : null, lat = ok ? P.lat[p] : null;
+    cnt[cs]++;
     var col = trend ? TREND_COL[g] : gColor(g);
     if (!ok) {   // 대략 위치: 읍면동 중심 주변에 겹치지 않게 살짝 흩뜨림
       var c = cen[D.dongs.name[P.dong[p]]] || [126.55, 33.38], a = (rank * 137.5) * Math.PI / 180, rr = 0.004 + 0.0012 * (rank % 7);
       lng = c[0] + Math.cos(a) * rr; lat = c[1] + Math.sin(a) * rr * 0.8; approx++;
     } else exact++;
-    (byG[g] = byG[g] || []).push({ value: [lng, lat, o.v], _o: o, _ok: ok, _rank: rank + 1,
-      symbol: ok ? 'circle' : 'emptyCircle', symbolSize: 6 + 28 * Math.sqrt(o.v / vmax),
-      itemStyle: ok ? { color: col, opacity: 0.85, borderColor: '#fff', borderWidth: 1 } : { color: col, opacity: 0.7, borderWidth: 1.5 },
+    (byG[g] = byG[g] || []).push({ value: [lng, lat, o.v], _o: o, _ok: ok, _cs: cs, _rank: rank + 1,
+      // 정확한 위치 = 채운 원, 대략 위치 = 테두리 원(안은 아주 옅게: 다크 모드에서도 흰 원이 되지 않게)
+      symbol: 'circle', symbolSize: 6 + 28 * Math.sqrt(o.v / vmax),
+      itemStyle: ok ? { color: col, opacity: 0.85, borderColor: T['surface-1'], borderWidth: 1 } : { color: tint(col, 0.14), borderColor: col, borderWidth: 1.5, opacity: 0.9 },
       label: { show: trend ? !!labelSet[p] : rank < 8, formatter: P.name[p] + (trend && A.trendD[p] != null && labelSet[p] ? ' ' + fmtPP2(A.trendD[p]) : ''), position: 'right', fontSize: 11, color: T['text-primary'], fontWeight: 600, textBorderColor: T['surface-1'], textBorderWidth: 3 } });
   });
   var selD = st.region.indexOf('dong:') === 0 ? D.dongs.name[+st.region.slice(5)] : null;
@@ -149,18 +196,18 @@ function renderPlaceMap() {
     legend: { bottom: 0, left: 'center', itemWidth: 10, itemHeight: 10, icon: 'circle', textStyle: { color: T['text-secondary'], fontSize: 12 } },
     tooltip: tip({ trigger: 'item', formatter: function (pp) {
       var d = pp.data; if (!d || !d._o) return ''; var o = d._o, p = o.p;
-      return '<b>' + d._rank + '. ' + esc(P.name[p]) + '</b><br>' + D.groups[P.group[p]] + ' · ' + esc(D.cats.name[P.cat[p]]) + ' · ' + esc(D.dongs.name[P.dong[p]]) + '<br>' + MET[st.metric] + ' ' + fmtN(o.v) + '건'
+      return '<b>' + d._rank + '. ' + esc(P.name[p]) + '</b>' + (P.alias && P.alias[p] ? '<br><span style="color:' + T['text-muted'] + '">이전 이름: ' + esc(P.alias[p]) + '</span>' : '') + '<br>' + D.groups[P.group[p]] + ' · ' + esc(D.cats.name[P.cat[p]]) + ' · ' + esc(D.dongs.name[P.dong[p]]) + '<br>' + MET[st.metric] + ' ' + fmtN(o.v) + '건'
         + (A.trendD && A.trendD[p] != null ? '<br>점유율 변화 ' + fmtPP2(A.trendD[p]) + ' (' + fmtP(o.prevM / gSum(A.gMet, A.sel, A.yoy, 12), 2) + ' → ' + fmtP(o.curM / gSum(A.gMet, A.sel, A.yoy), 2) + ')' : (A.yoy.length ? '<br>점유율 변화: 비교 불가(전년·올해 ' + TREND_MIN + '건 미만)' : ''))
         + (A.yoy.length && o.prev >= MIN_PLACE ? '<br>관광객 전년 대비 ' + fmtS(o.cur / o.prev - 1) + ' (참고)' : '')
-        + '<br><span style="color:' + T['text-muted'] + '">' + (d._ok ? '좌표: 주소 기준' : '대략 위치(읍면동 중심, 좌표 없음)') + '</span>';
+        + '<br><span style="color:' + T['text-muted'] + '">위치: ' + COORD_LABEL[d._cs] + '</span>';
     } }),
     series: Object.keys(byG).map(Number).sort(function (a, b) { return a - b; }).map(function (g) {
       return { name: trend ? TREND_NAMES[g] : D.groups[g], type: 'scatter', itemStyle: { color: trend ? TREND_COL[g] : gColor(g) }, coordinateSystem: 'geo', data: byG[g].sort(function (a, b) { return b._o.v - a._o.v; }), emphasis: { scale: 1.3, label: { show: true } }, labelLayout: { hideOverlap: true } };
     })
   });
-  $('nPts').textContent = (list.length ? '정확한 위치 ' + exact + '곳 · 대략 위치(빈 원, 읍면동 중심) ' + approx + '곳. ' : '표시할 장소가 없습니다. ')
+  $('nPts').textContent = (list.length ? '정확한 위치(채운 원) ' + exact + '곳' + (exact ? ' (주소 ' + (cnt.addr + cnt.addrOut) + ' · 장소 이름 ' + cnt.name + ')' : '') + ' · 대략 위치(테두리 원, 읍면동 중심) ' + approx + '곳' + (cnt.out ? ' (이름 검색 결과가 다른 읍면동이라 쓰지 않은 ' + cnt.out + '곳 포함)' : '') + '. ' : '표시할 장소가 없습니다. ')
     + (exact === 0 && list.length ? '아직 좌표 파일이 없어 모든 점을 읍면동 중심 근처에 표시했습니다. scripts\\geocode_places.ps1 로 주소를 좌표로 바꾸고 다시 빌드하면 정확한 위치로 바뀝니다. ' : '')
-    + '좌표는 카카오 로컬 API로 주소를 변환한 값입니다. 지도는 드래그·휠로 움직이고 확대할 수 있습니다.';
-  $('tPts').innerHTML = tableHtml(['순위', '장소', '업종', '세부 업종', '읍면동', MET[st.metric], '위치'], list.map(function (o, i) { var p = o.p; return [i + 1, P.name[p], D.groups[P.group[p]], D.cats.name[P.cat[p]], D.dongs.name[P.dong[p]], fmtN(o.v), (P.lng && P.lng[p] != null) ? '주소 좌표' : '대략(읍면동 중심)']; }), [0, 5]);
-  OUT.pts = { shown: list.length, exact: exact, approx: approx, series: Object.keys(byG).length, mode: trend ? 'trend' : 'group', legend: Object.keys(byG).map(Number).sort().map(function (g) { return (trend ? TREND_NAMES[g] : D.groups[g]) + ' ' + byG[g].length; }), labels: Object.keys(labelSet).map(function (p) { return P.name[p]; }) };
+    + '좌표는 카카오 로컬 API로 원본의 지번 주소(없으면 장소 이름)를 변환한 값입니다. 지도는 드래그·휠로 움직이고 확대할 수 있습니다.';
+  $('tPts').innerHTML = tableHtml(['순위', '장소', '업종', '세부 업종', '읍면동', MET[st.metric], '위치'], list.map(function (o, i) { var p = o.p; return [i + 1, P.name[p], D.groups[P.group[p]], D.cats.name[P.cat[p]], D.dongs.name[P.dong[p]], fmtN(o.v), COORD_LABEL[coordState(p)]]; }), [0, 5]);
+  OUT.pts = { shown: list.length, exact: exact, approx: approx, coord: cnt, series: Object.keys(byG).length, mode: trend ? 'trend' : 'group', legend: Object.keys(byG).map(Number).sort().map(function (g) { return (trend ? TREND_NAMES[g] : D.groups[g]) + ' ' + byG[g].length; }), labels: Object.keys(labelSet).map(function (p) { return P.name[p]; }) };
 }

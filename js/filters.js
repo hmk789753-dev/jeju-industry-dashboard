@@ -52,7 +52,7 @@ function initControls() {
   $('growthMode').onclick = function (ev) { var v = ev.target.getAttribute('data-v'); if (v) { st.growthMode = v; update(); } };
   $('ptColor').onclick = function (ev) { var v = ev.target.getAttribute('data-v'); if (v) { st.ptColor = v; syncControls(); renderPlaceMap(); stateToUrl(); } };
   $('trendHideSus').onchange = function () { st.trendHideSus = this.checked; renderPlaceTrend(); stateToUrl(); };
-  $('trendToMap').onclick = function () { st.ptColor = 'trend'; syncControls(); renderPlaceMap(); stateToUrl(); $('p7b').scrollIntoView({ block: 'start' }); };
+  $('trendToMap').onclick = function () { st.ptColor = 'trend'; syncControls(); renderPlaceMap(); stateToUrl(); goSection('p7b'); };   // 인기 장소 지도는 '계절·지역' 페이지에 있음
   $('ptN').onclick = function (ev) { var v = ev.target.getAttribute('data-v'); if (v) { st.ptN = +v; syncControls(); renderPlaceMap(); stateToUrl(); } };
   $('seasonView').onclick = function (ev) { var v = ev.target.getAttribute('data-v'); if (v) { st.seasonView = v; syncControls(); renderSeason(); } };
   $('mapMode').onclick = function (ev) { var v = ev.target.getAttribute('data-v'); if (v) { st.mapMode = v; update(); } };
